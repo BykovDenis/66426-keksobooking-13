@@ -78,14 +78,13 @@ function getHouseInfo(numAddress) {
   var checkOut = TIME_RESERVATION[getRandomValue(0, TIME_RESERVATION.length - 1)];
   var features = FEATURES.splice(0, getRandomValue(0, FEATURES.length - 1));
   var offsetX = Math.round(PIN_WIDTH / 2);
-  var offsetY = Math.round(PIN_HEIGHT / 2);
   var posX = locationX + offsetX;
-  var posY = locationY - offsetY;
+  var posY = locationY;
   return {
     avatar: 'img/avatars/user' + avatarNum + '.png',
     offer: {
       title: houseTitle,
-      address: locationX + ', ' + posY,
+      address: posX + ', ' + posY,
       price: getRandomValue(PRICE_MIN, PRICE_MAX),
       type: randomTypeHouse,
       rooms: roomsCount,
@@ -133,7 +132,8 @@ function getDOMTemplatesElement(root) {
     featureElevator: root.querySelector('.feature--elevator'),
     featureConditioner: root.querySelector('.feature-conditioner'),
     popupPictures: root.querySelector('.popup__photos'),
-    popupAvatar: root.querySelector('.popup__avatar')
+    popupAvatar: root.querySelector('.popup__avatar'),
+    popupClose: root.querySelector('.popup__close')
   };
 }
 
@@ -192,6 +192,15 @@ function renderMainCard(dom, house) {
   renderPictures(domTmplEl.popupPictures, offer.photos);
   domTmplEl.popupAvatar.src = house.avatar;
   dom.map.insertBefore(domTmplEl.mapCard, dom.filters);
+
+  domTmplEl.popupClose.addEventListener('click', closeMainCard(domTmplEl.mapCard));
+}
+
+function closeMainCard(popup) {
+  return function () {
+    // popupClose.removeEventListener('click');
+    popup.parentNode.removeChild(popup);
+  };
 }
 
 function removeMapCards() {
@@ -263,8 +272,7 @@ function renderSimilarAdresses(dom, houses) {
   var templateMapPin = template.querySelector('.map__pin');
   for (var i = 0; i < houses.length; i++) {
     var house = houses[i];
-    var offsetY = Math.round(PIN_HEIGHT / 2);
-    var posY = house.location.y - offsetY;
+    var posY = house.location.y - PIN_HEIGHT;
     var pin = templateMapPin.cloneNode(true);
     var img = pin.querySelector('img');
     img.src = house.avatar;
@@ -281,8 +289,6 @@ function renderHotels() {
   changeStateFieldsets(dom.fieldsets, true);
   var houses = createPins(dom.pins);
   getInitialLocation(dom.mainPin, dom.address);
-  renderMainCard(dom, houses[0]);
-
   dom.map.addEventListener('mouseup', function (evt) {
     var target = evt.currentTarget;
     setFormToActiveState(dom);
