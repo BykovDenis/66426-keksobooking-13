@@ -30,8 +30,6 @@ var PHOTO_EXTENSION = '.jpg';
 
 var WIDTH_AVATAR = 40;
 var HEIGHT_AVATAR = 40;
-var WIDTH_PHOTO = 150;
-var HEIGHT_PHOTO = 150;
 
 var PIN_WIDTH = 50;
 var PIN_HEIGHT = 70;
