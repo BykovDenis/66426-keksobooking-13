@@ -36,6 +36,7 @@ var PIN_HEIGHT = 70;
 
 var MAIN_PIN_WIDTH = 62;
 var MAIN_PIN_HEIGHT = 62;
+var MAIN_PIN_TAIL_HEIGHT = 15;
 
 var MIN_COST_HOUSE_PRICE = {
   'Лачуга': 0,
@@ -352,11 +353,11 @@ function controlPositionMarker(dom, x, y) {
 
   if (y < minTop) {
     posY = 0;
-  } else if (x > maxTop) {
+  } else if (y > maxTop) {
     posY = maxTop;
   }
 
-  return {x: posX, y: posY};
+  return {x: Math.round(posX), y: Math.round(posY)};
 }
 
 function initMoveMainMarker(evt) {
@@ -371,31 +372,33 @@ function initMoveMainMarker(evt) {
     firstInit = true;
   }
 
-  var setup = {
-    x: event.pageX,
-    y: event.pageY,
-  };
+  var offsetXY = dom.map.getBoundingClientRect();
 
+  var setup = {
+    x: event.clientX - offsetXY.left,
+    y: event.clientY - offsetXY.top,
+  };
 
   function onMouseMove(event) {
     event.preventDefault();
 
     var shift = {
-      x: setup.x - event.pageX,
-      y: setup.y - event.pageY,
+      x: setup.x - (event.clientX - offsetXY.left),
+      y: setup.y - (event.clientY - offsetXY.top),
     };
 
     setup = {
-      x: event.pageX,
-      y: event.pageY,
+      x: event.clientX - offsetXY.left,
+      y: event.clientY - offsetXY.top,
     };
 
-    var x = (event.pageX - shift.x);
-    var y = (event.pageY - shift.y);
+    var x = (event.clientX - shift.x - offsetXY.left);
+    var y = (event.clientY - shift.y - offsetXY.top);
     var coords = controlPositionMarker(dom, x, y);
     target.style.left = getPosMainPinX(coords.x) + 'px';
     target.style.top = getPosMainPinY(coords.y) + 'px';
-    dom.address.value = x + ', ' + y;
+    var yCoords = coords.y + Math.round(MAIN_PIN_HEIGHT / 2) + MAIN_PIN_TAIL_HEIGHT;
+    dom.address.value = getPosMainPinX(coords.x) + ', ' + yCoords;
 
   }
 
