@@ -48,6 +48,9 @@ var MAP_NUMBER_ROOM_TO_GUEST = {
   3: [3]
 };
 
+var houses = createHouses();
+var firstInit = false;
+
 function getRandomValue(min, max) {
   return Math.floor(Math.random() * ((max + 1) - min)) + min;
 }
@@ -123,7 +126,7 @@ function getDOMElements() {
     template: document.querySelector('template'),
     filters: document.querySelector('.map__filters-container'),
     noticeForm: document.querySelector('.ad-form'),
-    fieldsets: document.querySelectorAll('.notice__form > fieldset'),
+    fieldsets: document.querySelectorAll('.ad-form__element'),
     mainPin: document.querySelector('.map__pin--main'),
     address: document.getElementById('address')
   };
@@ -147,26 +150,9 @@ function getDOMTemplatesElement(root) {
     featureConditioner: root.querySelector('.feature-conditioner'),
     popupPictures: root.querySelector('.popup__photos'),
     popupAvatar: root.querySelector('.popup__avatar'),
-    popupClose: root.querySelector('.popup__close')
+    popupClose: root.querySelector('.popup__close'),
+    btnPin: root.querySelector('.map__pin')
   };
-}
-
-function createButton(x, y) {
-  var button = document.createElement('button');
-  button.style.left = 'left: ' + x + 'px';
-  button.style.top = 'top: ' + y + 'px';
-  button.style.className = 'map__pin';
-  return button;
-}
-
-function createImage(avatar, title) {
-  var img = document.createElement('img');
-  img.src = avatar;
-  img.alt = title;
-  img.width = WIDTH_AVATAR;
-  img.height = HEIGHT_AVATAR;
-  img.draggable = false;
-  return img;
 }
 
 function renderServices(dom, services) {
@@ -256,22 +242,52 @@ function getRandomArray(from, to) {
   return shuffleArray(arr);
 }
 
+function createPin(x, y, dom, avatar, title) {
+  var template = dom.template.content;
+  var card = template.cloneNode(true);
+  var domTmplEl = getDOMTemplatesElement(card);
+  var btn;
+  if (domTmplEl) {
+    btn = domTmplEl.btnPin;
+    if (btn) {
+      btn.style.left = 'left: ' + x + 'px';
+      btn.style.top = 'top: ' + y + 'px';
+      btn.style.className = 'map__pin';
+      var img = btn.querySelector('img');
+      if (img) {
+        img.src = avatar;
+        img.alt = title;
+        img.width = WIDTH_AVATAR;
+        img.height = HEIGHT_AVATAR;
+        img.draggable = false;
+      }
+    }
+  }
+  return btn;
+}
+
 function createPins(pins) {
-  var houses = [];
-  var numAddresses = getRandomArray(1, HOUSE_COUNT);
   var documentFragment = document.createDocumentFragment();
-  for (var i = 0; i < HOUSE_COUNT; i++) {
-    var house = getHouseInfo(numAddresses[i]);
-    houses.push(house);
-    var button = createButton(house.location.x, house.location.y);
-    var img = createImage(house.avatar, house.offer.title);
-    button.appendChild(img);
-    documentFragment.appendChild(button);
+  var dom = getDOMElements();
+  for (var i = 0; i < houses.length; i++) {
+    var house = houses[i];
+    var pin = createPin(house.location.x, house.location.y, dom, house.avatar, house.offer.title);
+    documentFragment.appendChild(pin);
   }
   if (pins) {
     pins.appendChild(documentFragment);
   }
-  return houses;
+}
+
+
+function createHouses() {
+  var arrHouse = [];
+  var numAddresses = getRandomArray(1, HOUSE_COUNT);
+  for (var i = 0; i < HOUSE_COUNT; i++) {
+    var house = getHouseInfo(numAddresses[i]);
+    arrHouse.push(house);
+  }
+  return arrHouse;
 }
 
 function btnHandlerClick(dom, house) {
@@ -281,7 +297,7 @@ function btnHandlerClick(dom, house) {
   };
 }
 
-function renderSimilarAdresses(dom, houses) {
+function renderSimilarAdresses(dom) {
   var template = dom.template.content;
   var templateMapPin = template.querySelector('.map__pin');
   for (var i = 0; i < houses.length; i++) {
@@ -297,21 +313,24 @@ function renderSimilarAdresses(dom, houses) {
   }
 }
 
+function initMoveMainMarker(evt) {
+  evt.preventDefault();
+  var dom = getDOMElements();
+  if (!firstInit) {
+    createPins(dom.pins);
+    setFormToActiveState(dom);
+    getInitialLocation(dom.mainPin, dom.address);
+    renderSimilarAdresses(dom);
+    firstInit = true;
+  }
+}
+
 function renderHotels() {
   var dom = getDOMElements();
   // п1 ТЗ блокировка формы
   changeStateFieldsets(dom.fieldsets, true);
-  var houses = createPins(dom.pins);
   getInitialLocation(dom.mainPin, dom.address);
-  dom.map.addEventListener('mouseup', function (evt) {
-    var target = evt.currentTarget;
-    setFormToActiveState(dom);
-    getInitialLocation(dom.mainPin, dom.address);
-    renderSimilarAdresses(dom, houses);
-    target.style.left = evt.clientX;
-    target.style.top = evt.clientY;
-  });
-
+  dom.map.addEventListener('mouseup', initMoveMainMarker);
 }
 
 function validateCostHouse(form) {
