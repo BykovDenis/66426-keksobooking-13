@@ -34,6 +34,9 @@ var HEIGHT_AVATAR = 40;
 var PIN_WIDTH = 50;
 var PIN_HEIGHT = 70;
 
+var MAIN_PIN_WIDTH = 62;
+var MAIN_PIN_HEIGHT = 62;
+
 var MIN_COST_HOUSE_PRICE = {
   'Лачуга': 0,
   'Квартира': 1000,
@@ -94,8 +97,7 @@ function getHouseInfo(numAddress) {
   var checkIn = TIME_RESERVATION[getRandomValue(0, TIME_RESERVATION.length - 1)];
   var checkOut = TIME_RESERVATION[getRandomValue(0, TIME_RESERVATION.length - 1)];
   var features = FEATURES.splice(0, getRandomValue(0, FEATURES.length - 1));
-  var offsetX = Math.round(PIN_WIDTH / 2);
-  var posX = locationX + offsetX;
+  var posX = getPosPinX(locationX);
   var posY = locationY;
   return {
     avatar: 'img/avatars/user' + avatarNum + '.png',
@@ -222,6 +224,26 @@ function changeStateFieldsets(fieldsets, state) {
   });
 }
 
+function getPosPinX(x) {
+  var offsetX = Math.ceil(PIN_WIDTH / 2);
+  return x - offsetX;
+}
+
+function getPosPinY(y) {
+  var offsetY = Math.ceil(PIN_HEIGHT / 2);
+  return y - offsetY;
+}
+
+function getPosMainPinX(x) {
+  var offsetX = Math.ceil(MAIN_PIN_WIDTH / 2);
+  return x - offsetX;
+}
+
+function getPosMainPinY(y) {
+  var offsetY = Math.ceil(MAIN_PIN_HEIGHT / 2);
+  return y - offsetY;
+}
+
 function getLocation(pin) {
   return {
     x: pin.offsetLeft + Math.ceil(pin.offsetWidth / 2),
@@ -277,6 +299,7 @@ function createPins(pins) {
   if (pins) {
     pins.appendChild(documentFragment);
   }
+
 }
 
 
@@ -313,9 +336,33 @@ function renderSimilarAdresses(dom) {
   }
 }
 
+function controlPositionMarker(dom, x, y) {
+  var posX = x;
+  var posY = y;
+  var minTop = 0;
+  var maxTop = dom.map.offsetHeight;
+  var minLeft = 0;
+  var maxLeft = dom.map.offsetWidth;
+
+  if (x < minLeft) {
+    posX = minLeft;
+  } else if (x > maxLeft) {
+    posX = maxLeft;
+  }
+
+  if (y < minTop) {
+    posY = 0;
+  } else if (x > maxTop) {
+    posY = maxTop;
+  }
+
+  return {x: posX, y: posY};
+}
+
 function initMoveMainMarker(evt) {
   evt.preventDefault();
   var dom = getDOMElements();
+  var target = evt.currentTarget;
   if (!firstInit) {
     createPins(dom.pins);
     setFormToActiveState(dom);
@@ -323,14 +370,51 @@ function initMoveMainMarker(evt) {
     renderSimilarAdresses(dom);
     firstInit = true;
   }
+
+  var setup = {
+    x: event.pageX,
+    y: event.pageY,
+  };
+
+
+  function onMouseMove(event) {
+    event.preventDefault();
+
+    var shift = {
+      x: setup.x - event.pageX,
+      y: setup.y - event.pageY,
+    };
+
+    setup = {
+      x: event.pageX,
+      y: event.pageY,
+    };
+
+    var x = (event.pageX - shift.x);
+    var y = (event.pageY - shift.y);
+    var coords = controlPositionMarker(dom, x, y);
+    target.style.left = getPosMainPinX(coords.x) + 'px';
+    target.style.top = getPosMainPinY(coords.y) + 'px';
+    dom.address.value = x + ', ' + y;
+
+  }
+
+  function onMouseUp(evt2) {
+    event.preventDefault();
+    onMouseMove(evt2);
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', initMoveMainMarker);
+  }
+
+  document.addEventListener('mouseup', onMouseUp);
+  document.addEventListener('mousemove', onMouseMove);
 }
 
 function renderHotels() {
   var dom = getDOMElements();
-  // п1 ТЗ блокировка формы
   changeStateFieldsets(dom.fieldsets, true);
   getInitialLocation(dom.mainPin, dom.address);
-  dom.map.addEventListener('mouseup', initMoveMainMarker);
+  dom.mainPin.addEventListener('mousedown', initMoveMainMarker);
 }
 
 function validateCostHouse(form) {
