@@ -56,7 +56,7 @@ var houses = createHouses();
 var firstInit = false;
 
 function getRandomValue(min, max) {
-  return Math.floor(Math.random() * ((max + 1) - min)) + min;
+  return Math.floor((Math.random()) * ((max + 1) - min)) + min;
 }
 
 function getURLPhoto(number) {
@@ -97,8 +97,10 @@ function getHouseInfo(numAddress) {
   var guestCount = getRandomValue(0, Math.pow(2, 32));
   var checkIn = TIME_RESERVATION[getRandomValue(0, TIME_RESERVATION.length - 1)];
   var checkOut = TIME_RESERVATION[getRandomValue(0, TIME_RESERVATION.length - 1)];
-  var features = FEATURES.splice(0, getRandomValue(0, FEATURES.length - 1));
-  var posX = getPosPinX(locationX);
+  var featureTo = getRandomValue(1, FEATURES.length - 1);
+  var featureFrom = getRandomValue(0, featureTo - 1);
+  var features = FEATURES.slice(featureFrom, featureTo);
+  var posX = locationX;
   var posY = locationY;
   return {
     avatar: 'img/avatars/user' + avatarNum + '.png',
@@ -197,11 +199,20 @@ function renderMainCard(dom, house) {
   dom.map.insertBefore(domTmplEl.mapCard, dom.filters);
 
   domTmplEl.popupClose.addEventListener('click', closeMainCard(domTmplEl.mapCard));
+  document.addEventListener('keydown', closeMainCardByEsc);
+}
+
+function closeMainCardByEsc(event) {
+  if (event.keyCode === 27) {
+    var popup = document.querySelector('.map__card');
+    if (popup) {
+      popup.parentNode.removeChild(popup);
+    }
+  }
 }
 
 function closeMainCard(popup) {
   return function () {
-    // popupClose.removeEventListener('click');
     popup.parentNode.removeChild(popup);
   };
 }
@@ -223,16 +234,6 @@ function changeStateFieldsets(fieldsets, state) {
   Object.keys(fieldsets).forEach(function (index) {
     fieldsets[index].disabled = state;
   });
-}
-
-function getPosPinX(x) {
-  var offsetX = Math.ceil(PIN_WIDTH / 2);
-  return x - offsetX;
-}
-
-function getPosPinY(y) {
-  var offsetY = Math.ceil(PIN_HEIGHT / 2);
-  return y - offsetY;
 }
 
 function getPosMainPinX(x) {
@@ -317,7 +318,6 @@ function createHouses() {
 function btnHandlerClick(dom, house) {
   return function () {
     renderMainCard(dom, house);
-    dom.address.value = house.location.x + ' ' + house.location.y;
   };
 }
 
@@ -364,6 +364,7 @@ function initMoveMainMarker(evt) {
   evt.preventDefault();
   var dom = getDOMElements();
   var target = evt.currentTarget;
+  var startMoveMainPin = true;
   if (!firstInit) {
     createPins(dom.pins);
     setFormToActiveState(dom);
@@ -381,7 +382,9 @@ function initMoveMainMarker(evt) {
 
   function onMouseMove(event) {
     event.preventDefault();
-
+    if (!startMoveMainPin) {
+      return;
+    }
     var shift = {
       x: setup.x - (event.clientX - offsetXY.left),
       y: setup.y - (event.clientY - offsetXY.top),
@@ -397,14 +400,16 @@ function initMoveMainMarker(evt) {
     var coords = controlPositionMarker(dom, x, y);
     target.style.left = getPosMainPinX(coords.x) + 'px';
     target.style.top = getPosMainPinY(coords.y) + 'px';
+    var xCoords = coords.x + Math.round(MAIN_PIN_WIDTH / 2);
     var yCoords = coords.y + Math.round(MAIN_PIN_HEIGHT / 2) + MAIN_PIN_TAIL_HEIGHT;
-    dom.address.value = getPosMainPinX(coords.x) + ', ' + yCoords;
+    dom.address.value = getPosMainPinX(xCoords) + ', ' + yCoords;
 
   }
 
   function onMouseUp(evt2) {
     event.preventDefault();
     onMouseMove(evt2);
+    startMoveMainPin = false;
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', initMoveMainMarker);
   }
