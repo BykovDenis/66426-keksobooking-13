@@ -1,8 +1,6 @@
 'use strict';
 
-(function () {
-
-  var firstInit = false;
+window.pin = (function () {
 
   var MAIN_PIN_WIDTH = 62;
   var MAIN_PIN_HEIGHT = 62;
@@ -39,15 +37,15 @@
 
   function btnHandlerClick(dom, house) {
     return function () {
-      window.renderMainCard(dom, house);
+      window.card.renderMainCard(dom, house);
     };
   }
 
   window.createPin = function (props) {
-    var dom = window.getDOMElements();
+    var dom = window.dom.getDOMElements();
     var template = dom.template.content;
     var card = template.cloneNode(true);
-    var domTmplEl = window.getDOMTemplatesElement(card);
+    var domTmplEl = window.dom.getDOMTemplatesElement(card);
     var btn = domTmplEl.btnPin;
     var posY = getPosPinY(props.y);
     var posX = getPosPinX(props.x);
@@ -90,64 +88,60 @@
     return {x: Math.round(posX), y: Math.round(posY)};
   }
 
-  window.initMoveMainMarker = function (evt) {
-    evt.preventDefault();
-    var dom = window.getDOMElements();
-    if (!firstInit) {
-      window.setFormToActiveState(dom);
-    }
-    var target = evt.currentTarget;
-    var startMoveMainPin = true;
+  return {
+    initMoveMainMarker: function (evt) {
+      evt.preventDefault();
+      var dom = window.dom.getDOMElements();
+      window.form.setFormToActiveState(dom);
+      var target = evt.currentTarget;
+      var startMoveMainPin = true;
 
-    var offsetXY = dom.map.getBoundingClientRect();
+      var offsetXY = dom.map.getBoundingClientRect();
 
-    var setup = {
-      x: event.clientX - offsetXY.left,
-      y: event.clientY - offsetXY.top,
-    };
-
-    function onMouseMove(event) {
-      event.preventDefault();
-      if (!startMoveMainPin) {
-        return;
-      }
-      var shift = {
-        x: setup.x - (event.clientX - offsetXY.left),
-        y: setup.y - (event.clientY - offsetXY.top),
-      };
-
-      setup = {
+      var setup = {
         x: event.clientX - offsetXY.left,
         y: event.clientY - offsetXY.top,
       };
 
-      var x = (event.clientX - shift.x - offsetXY.left);
-      var y = (event.clientY - shift.y - offsetXY.top);
-      var coords = controlPositionMarker(dom, x, y);
-      target.style.left = getPosMainPinX(coords.x) + 'px';
-      target.style.top = getPosMainPinY(coords.y) + 'px';
-      var xCoords = coords.x + Math.round(MAIN_PIN_WIDTH / 2);
-      var yCoords = coords.y + Math.round(MAIN_PIN_HEIGHT / 2) + MAIN_PIN_TAIL_HEIGHT;
-      dom.address.value = getPosMainPinX(xCoords) + ', ' + yCoords;
+      function onMouseMove(event) {
+        event.preventDefault();
+        if (!startMoveMainPin) {
+          return;
+        }
+        var shift = {
+          x: setup.x - (event.clientX - offsetXY.left),
+          y: setup.y - (event.clientY - offsetXY.top),
+        };
 
-    }
+        setup = {
+          x: event.clientX - offsetXY.left,
+          y: event.clientY - offsetXY.top,
+        };
 
-    function onMouseUp(evt2) {
-      event.preventDefault();
-      if (!firstInit) {
-        window.createPins(dom.pins);
-        window.getInitialLocation(dom.mainPin, dom.address);
-        // window.renderSimilarAdresses(dom);
-        firstInit = true;
+        var x = (event.clientX - shift.x - offsetXY.left);
+        var y = (event.clientY - shift.y - offsetXY.top);
+        var coords = controlPositionMarker(dom, x, y);
+        target.style.left = getPosMainPinX(coords.x) + 'px';
+        target.style.top = getPosMainPinY(coords.y) + 'px';
+        var xCoords = coords.x + Math.round(MAIN_PIN_WIDTH / 2);
+        var yCoords = coords.y + Math.round(MAIN_PIN_HEIGHT / 2) + MAIN_PIN_TAIL_HEIGHT;
+        dom.address.value = getPosMainPinX(xCoords) + ', ' + yCoords;
+
       }
-      onMouseMove(evt2);
-      startMoveMainPin = false;
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', window.initMoveMainMarker);
-    }
 
-    document.addEventListener('mouseup', onMouseUp);
-    document.addEventListener('mousemove', onMouseMove);
+      function onMouseUp(evt2) {
+        event.preventDefault();
+        window.pins.createPins(dom.pins);
+        window.map.getInitialLocation(dom.mainPin, dom.address);
+        onMouseMove(evt2);
+        startMoveMainPin = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', window.pin.initMoveMainMarker);
+      }
+
+      document.addEventListener('mouseup', onMouseUp);
+      document.addEventListener('mousemove', onMouseMove);
+    }
   };
 
 })();
