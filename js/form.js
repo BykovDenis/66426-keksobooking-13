@@ -1,6 +1,6 @@
 'use strict';
 
-(function () {
+window.form = (function () {
 
   var MIN_COST_HOUSE_PRICE = {
     'Лачуга': 0,
@@ -14,18 +14,6 @@
     1: [1, 2],
     2: [0, 1, 2],
     3: [3]
-  };
-
-  window.changeStateFieldsets = function(fieldsets, state) {
-    Object.keys(fieldsets).forEach(function (index) {
-      fieldsets[index].disabled = state;
-    });
-  };
-
-  window.setFormToActiveState = function (dom) {
-    dom.map.classList.remove('map--faded');
-    dom.noticeForm.classList.remove('ad-form--disabled');
-    changeStateFieldsets(dom.fieldsets);
   };
 
   function validateCostHouse(form) {
@@ -100,7 +88,7 @@
   }
 
   function validationForm() {
-    var dom = window.getDOMElements();
+    var dom = window.dom.getDOMElements();
     var form = dom.noticeForm;
     var inputTitle = form.querySelector('#title');
     inputTitle.addEventListener('invalid', validateInputTitle(inputTitle));
@@ -108,16 +96,25 @@
     var inputPrice = form.querySelector('#price');
     inputPrice.addEventListener('invalid', validateInputPrice(inputPrice));
     inputPrice.addEventListener('input', validateInputPrice(inputPrice));
+    changeStateFieldsets(dom.fieldsets, true);
     validateCostHouse(form);
     validateChangeTime(form);
     validateRoomsAndGuest(form);
   }
 
-  window.getInitialLocation = function (mainPin, address) {
-    var location = window.getLocation(mainPin);
-    address.value = location.x + ' ' + location.y;
-  };
+  function changeStateFieldsets(fieldsets, state) {
+    Object.keys(fieldsets).forEach(function (index) {
+      fieldsets[index].disabled = state;
+    });
+  }
 
   validationForm();
+  return {
+    setFormToActiveState: function (dom) {
+      dom.map.classList.remove('map--faded');
+      dom.noticeForm.classList.remove('ad-form--disabled');
+      changeStateFieldsets(dom.fieldsets);
+    }
+  };
 
 })();

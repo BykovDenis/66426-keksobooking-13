@@ -1,27 +1,6 @@
 'use strict';
 
-(function () {
-
-  window.renderMainCard = function (dom, house) {
-    removeMapCards();
-    var offer = house.offer;
-    var template = dom.template.content;
-    var card = template.cloneNode(true);
-    var domTmplEl = window.getDOMTemplatesElement(card);
-    domTmplEl.title.textContent = offer.title;
-    domTmplEl.address.textContent = offer.address;
-    domTmplEl.price.innerHTML = offer.price + ' &#x20bd;/ночь';
-    domTmplEl.typeHouse.textContent = offer.type;
-    domTmplEl.numberRoomsGuests.innerHTML = offer.rooms + ' комнаты для ' + offer.guests + ' гостей';
-    domTmplEl.checkInCheckOut.innerHTML = 'Заезд после ' + offer.checkin + ', выезд до ' + offer.checkout;
-    renderServices(domTmplEl.popupFeatures, offer.features);
-    renderPictures(domTmplEl.popupPictures, offer.photos);
-    domTmplEl.popupAvatar.src = house.avatar;
-    dom.map.insertBefore(domTmplEl.mapCard, dom.filters);
-
-    domTmplEl.popupClose.addEventListener('click', closeMainCard(domTmplEl.mapCard));
-    document.addEventListener('keydown', closeMainCardByEsc);
-  };
+window.card = (function () {
 
   function renderServices(dom, services) {
     var elements = dom.querySelectorAll('li');
@@ -65,5 +44,28 @@
       cards[index].parentNode.removeChild(cards[index]);
     });
   }
+
+  return {
+    renderMainCard: function (dom, house) {
+      removeMapCards();
+      var offer = house.offer;
+      var template = dom.template.content;
+      var card = template.cloneNode(true);
+      var domTmplEl = window.dom.getDOMTemplatesElement(card);
+      domTmplEl.title.textContent = offer.title;
+      domTmplEl.address.textContent = offer.address;
+      domTmplEl.price.innerHTML = offer.price + ' &#x20bd;/ночь';
+      domTmplEl.typeHouse.textContent = offer.type;
+      domTmplEl.numberRoomsGuests.innerHTML = offer.rooms + ' комнаты для ' + offer.guests + ' гостей';
+      domTmplEl.checkInCheckOut.innerHTML = 'Заезд после ' + offer.checkin + ', выезд до ' + offer.checkout;
+      renderServices(domTmplEl.popupFeatures, offer.features);
+      renderPictures(domTmplEl.popupPictures, offer.photos);
+      domTmplEl.popupAvatar.src = house.avatar;
+      dom.map.insertBefore(domTmplEl.mapCard, dom.filters);
+
+      domTmplEl.popupClose.addEventListener('click', closeMainCard(domTmplEl.mapCard));
+      document.addEventListener('keydown', closeMainCardByEsc);
+    }
+  };
 
 })();
