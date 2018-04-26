@@ -131,10 +131,13 @@ window.pin = (function () {
 
       function onMouseUp(evt2) {
         event.preventDefault();
-        window.pins.createPins(dom.pins);
+        if (startMoveMainPin) {
+          window.pins.removeAllPins();
+          window.pins.createPins(dom.pins);
+        }
+        startMoveMainPin = false;
         window.map.getInitialLocation(dom.mainPin, dom.address);
         onMouseMove(evt2);
-        startMoveMainPin = false;
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', window.pin.initMoveMainMarker);
       }

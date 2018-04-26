@@ -84,18 +84,16 @@ window.data = (function () {
     };
   }
 
-  function createHouses() {
-    var arrHouse = [];
-    var numAddresses = window.utils.getRandomArray(1, HOUSE_COUNT);
-    for (var i = 0; i < HOUSE_COUNT; i++) {
-      var house = getHouseInfo(numAddresses[i]);
-      arrHouse.push(house);
-    }
-    return arrHouse;
-  }
-
   return {
-    houses: createHouses()
+    createHouses: function () {
+      var arrHouse = [];
+      var numAddresses = window.utils.getRandomArray(1, HOUSE_COUNT);
+      for (var i = 0; i < HOUSE_COUNT; i++) {
+        var house = getHouseInfo(numAddresses[i]);
+        arrHouse.push(house);
+      }
+      return arrHouse;
+    }
   };
 
 })();
