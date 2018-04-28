@@ -1,25 +1,42 @@
 'use strict';
 
 window.pins = (function () {
+  // var URL = 'https://js.dump.academy/keksobooking/data';
+  var URL = '/data/wizards.json';
   return {
     createPins: function (pins) {
-      var documentFragment = document.createDocumentFragment();
-      var houses = window.data.houses;
-      for (var i = 0; i < houses.length; i++) {
-        var house = houses[i];
-        var dataForPin = {
-          x: house.location.x,
-          y: house.location.y,
-          house: house,
-          avatar: house.avatar,
-          title: house.offer.title,
-        };
-        var pin = window.createPin(dataForPin);
-        documentFragment.appendChild(pin);
+      window.backend.load(URL, onSuccess, onError);
+      function onSuccess(data) {
+        var documentFragment = document.createDocumentFragment();
+        var cards = data;
+        for (var i = 0; i < cards.length; i++) {
+          var card = cards[i];
+          var dataForPin = {
+            x: card.location.x,
+            y: card.location.y,
+            house: card,
+            avatar: card.author.avatar,
+            title: card.offer.title,
+          };
+          var pin = window.createPin(dataForPin);
+          documentFragment.appendChild(pin);
+        }
+        if (pins) {
+          pins.appendChild(documentFragment);
+        }
       }
-      if (pins) {
-        pins.appendChild(documentFragment);
+      function onError(e) {
+        console.log(e);
       }
+    },
+    removeAllPins: function () {
+      var pins = document.querySelectorAll('.map__pin');
+      Object.keys(pins).forEach(function (elem) {
+        var pin = pins[elem];
+        if (!pin.classList.contains('map__pin--main')) {
+          pins[elem].parentNode.removeChild(pins[elem]);
+        }
+      });
     }
   };
 })();

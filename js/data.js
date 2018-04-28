@@ -63,7 +63,9 @@ window.data = (function () {
     var posX = locationX;
     var posY = locationY;
     return {
-      avatar: 'img/avatars/user' + avatarNum + '.png',
+      author: {
+        avatar: 'img/avatars/user' + avatarNum + '.png',
+      },
       offer: {
         title: houseTitle,
         address: posX + ', ' + posY,
@@ -84,18 +86,16 @@ window.data = (function () {
     };
   }
 
-  function createHouses() {
-    var arrHouse = [];
-    var numAddresses = window.utils.getRandomArray(1, HOUSE_COUNT);
-    for (var i = 0; i < HOUSE_COUNT; i++) {
-      var house = getHouseInfo(numAddresses[i]);
-      arrHouse.push(house);
-    }
-    return arrHouse;
-  }
-
   return {
-    houses: createHouses()
+    createHouses: function () {
+      var arrHouse = [];
+      var numAddresses = window.utils.getRandomArray(1, HOUSE_COUNT);
+      for (var i = 0; i < HOUSE_COUNT; i++) {
+        var house = getHouseInfo(numAddresses[i]);
+        arrHouse.push(house);
+      }
+      return arrHouse;
+    }
   };
 
 })();

@@ -60,7 +60,7 @@ window.card = (function () {
       domTmplEl.checkInCheckOut.innerHTML = 'Заезд после ' + offer.checkin + ', выезд до ' + offer.checkout;
       renderServices(domTmplEl.popupFeatures, offer.features);
       renderPictures(domTmplEl.popupPictures, offer.photos);
-      domTmplEl.popupAvatar.src = house.avatar;
+      domTmplEl.popupAvatar.src = house.author.avatar;
       dom.map.insertBefore(domTmplEl.mapCard, dom.filters);
 
       domTmplEl.popupClose.addEventListener('click', closeMainCard(domTmplEl.mapCard));

@@ -16,14 +16,24 @@ window.form = (function () {
     3: [3]
   };
 
+  var URL = 'https://js.dump.academy/keksobooking';
+
   function validateCostHouse(form) {
     var selectTypes = form.querySelector('#type');
-    selectTypes.addEventListener('change', function (evt) {
-      var inputPrice = form.querySelector('#price');
-      var selectedElement = evt.target.selectedIndex;
-      var contentElement = selectTypes[selectedElement].textContent;
-      inputPrice.min = MIN_COST_HOUSE_PRICE[contentElement];
-    });
+    selectTypes.addEventListener('change', selectCostChangeHandler(form));
+  }
+
+  function selectCostChangeHandler(form) {
+    return function (evt) {
+      getOptionCostHandler(form, evt.target.selectedIndex);
+    };
+  }
+
+  function getOptionCostHandler(form, index) {
+    var selectTypes = form.querySelector('#type');
+    var inputPrice = form.querySelector('#price');
+    var contentElement = selectTypes[index].textContent;
+    inputPrice.min = MIN_COST_HOUSE_PRICE[contentElement];
   }
 
   function validateInputTitle(inputTitle) {
@@ -69,22 +79,73 @@ window.form = (function () {
 
   function validateRoomsAndGuest(form) {
     var selectRoomNumber = form.querySelector('#room_number');
-    var selectCapacity = form.querySelector('#capacity');
-    selectRoomNumber.addEventListener('change', function () {
+    changeSelectRoomsAndGuest(0, form);
+    selectRoomNumber.addEventListener('change', changeSelectRoomsAndGuestHandler(form));
+  }
+
+  function changeSelectRoomsAndGuestHandler(form) {
+    return function (evt) {
+      var selectRoomNumber = evt.target;
       var selIndex = selectRoomNumber.selectedIndex;
-      var position = MAP_NUMBER_ROOM_TO_GUEST[selIndex];
-      Object.keys(selectCapacity).forEach(function (index) {
-        if (position.some(function (elem) {
-          return parseInt(elem, 10) === parseInt(index, 10);
-        })) {
-          selectCapacity.options[index].removeAttribute('disabled');
-          selectCapacity.options[index].setAttribute('selected', 'true');
-        } else {
-          selectCapacity.options[index].setAttribute('disabled', 'true');
-          selectCapacity.options[index].removeAttribute('selected');
-        }
-      });
+      changeSelectRoomsAndGuest(selIndex, form);
+    };
+  }
+
+  function changeSelectRoomsAndGuest(indexElement, form) {
+    var selectCapacity = form.querySelector('#capacity');
+    var position = MAP_NUMBER_ROOM_TO_GUEST[indexElement];
+    Object.keys(selectCapacity).forEach(function (index) {
+      if (position.some(function (elem) {
+        return parseInt(elem, 10) === parseInt(index, 10);
+      })) {
+        selectCapacity.options[index].removeAttribute('disabled');
+        selectCapacity.options[index].selected = true;
+      } else {
+        selectCapacity.options[index].setAttribute('disabled', 'true');
+        selectCapacity.options[index].removeAttribute('selected');
+      }
     });
+  }
+
+  var showSuccessPopup = function (popupSuccess) {
+    popupSuccess.classList.remove('hidden');
+    setTimeout(function () {
+      popupSuccess.classList.add('hidden');
+    }, 3500);
+  };
+
+  function prepareFormData(url) {
+    var dom = window.dom.getDOMElements();
+
+    function onSuccess() {
+      showSuccessPopup(dom.popupSuccess);
+    }
+
+    function onError(errorMessage) {
+      var div = document.createElement('div');
+      div.style.zIndex = 1000;
+      div.style.minHeight = 30 + 'px';
+      div.style.minWidth = 500 + 'px';
+      div.style.position = 'fixed';
+      div.style.top = 0;
+      div.style.left = 'calc(50% - 250px)';
+      div.style.backgroundColor = 'white';
+      div.style.opacity = 0.8;
+      div.textContent = errorMessage;
+      div.style.textAlign = 'center';
+      div.style.lineHeight = 30 + 'px';
+      div.style.color = 'red';
+      document.body.appendChild(div);
+      setTimeout(function () {
+        document.body.removeChild(div);
+      }, 3500);
+    }
+
+    return function (evt) {
+      evt.preventDefault();
+      var formData = new FormData(dom.noticeForm);
+      window.backend.sendForm(url, formData, onSuccess, onError);
+    };
   }
 
   function validationForm() {
@@ -100,7 +161,12 @@ window.form = (function () {
     validateCostHouse(form);
     validateChangeTime(form);
     validateRoomsAndGuest(form);
+
+    dom.submit.addEventListener('click', prepareFormData(URL));
+
   }
+
+  validationForm();
 
   function changeStateFieldsets(fieldsets, state) {
     Object.keys(fieldsets).forEach(function (index) {
@@ -108,9 +174,9 @@ window.form = (function () {
     });
   }
 
-  validationForm();
   return {
-    setFormToActiveState: function (dom) {
+    setFormToActiveState: function () {
+      var dom = window.dom.getDOMElements();
       dom.map.classList.remove('map--faded');
       dom.noticeForm.classList.remove('ad-form--disabled');
       changeStateFieldsets(dom.fieldsets);

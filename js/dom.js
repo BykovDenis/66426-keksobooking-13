@@ -12,7 +12,9 @@ window.dom = (function () {
         noticeForm: document.querySelector('.ad-form'),
         fieldsets: document.querySelectorAll('.ad-form__element'),
         mainPin: document.querySelector('.map__pin--main'),
-        address: document.getElementById('address')
+        address: document.getElementById('address'),
+        submit: document.querySelector('.ad-form__submit'),
+        popupSuccess: document.querySelector('.success'),
       };
     },
     getDOMTemplatesElement: function (root) {
