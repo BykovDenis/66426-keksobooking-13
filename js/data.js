@@ -63,7 +63,9 @@ window.data = (function () {
     var posX = locationX;
     var posY = locationY;
     return {
-      avatar: 'img/avatars/user' + avatarNum + '.png',
+      author: {
+        avatar: 'img/avatars/user' + avatarNum + '.png',
+      },
       offer: {
         title: houseTitle,
         address: posX + ', ' + posY,

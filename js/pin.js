@@ -92,7 +92,7 @@ window.pin = (function () {
     initMoveMainMarker: function (evt) {
       evt.preventDefault();
       var dom = window.dom.getDOMElements();
-      window.form.setFormToActiveState(dom);
+      window.form.setFormToActiveState();
       var target = evt.currentTarget;
       var startMoveMainPin = true;
 
